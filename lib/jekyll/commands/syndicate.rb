@@ -9,7 +9,7 @@ module Jekyll
           c.option 'dest', '-d DEST', 'Where the site should go.'
 
           c.action do |args, options|
-            Jekyll::Site.new_site_at(options['dest'])
+            JekyllPosse.syndicate
           end
         end
       end

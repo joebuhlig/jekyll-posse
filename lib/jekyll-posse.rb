@@ -6,8 +6,8 @@ def require_all(path)
 end
 
 module JekyllPosse
-  def test
-    puts "JekyllPosse.test"
+  def syndicate
+    puts "JekyllPosse.syndicate"
   end
 end
 
