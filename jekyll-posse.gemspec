@@ -10,8 +10,7 @@ Gem::Specification.new do |s|
   s.homepage      = "https://rubygems.org/gems/jekyll-posse"
   s.summary       = "A methodology and rake task for syndicating IndieWeb posts from Jekyll."
   s.description   = "A methodology and rake task for syndicating IndieWeb posts from Jekyll."
-
-  s.files         = Dir['lib/*.rb'] + Dir['lib/**/*.rb'] + Dir['lib/**/**/*.rb']
+  s.files         = `git ls-files -z`.split("\x0").grep(%r!^lib/!)
   s.require_paths = ["lib"]
   s.metadata      = {
     "source_code_uri" => "https://github.com/joebuhlig/jekyll-posse",
@@ -20,5 +19,7 @@ Gem::Specification.new do |s|
     "homepage_uri"    => s.homepage,
   }
   s.add_dependency "jekyll", ">= 3.7", "< 5.0"
+  s.add_dependency "kramdown-parser-gfm", ">= 1.1.0"
+  s.add_dependency "tweetkit", ">= 0.2.0"
 end
 

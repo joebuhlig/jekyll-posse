@@ -9,7 +9,7 @@ module Jekyll
           c.option 'dest', '-d DEST', 'Where the site should go.'
 
           c.action do |args, options|
-            JekyllPosse.syndicate
+            JekyllPosse.syndicate(args, options)
           end
         end
       end
