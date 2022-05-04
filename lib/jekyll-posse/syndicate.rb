@@ -2,6 +2,7 @@ require 'jekyll'
 require 'fileutils'
 require 'psych'
 require 'jekyll-posse/twitter'
+require 'jekyll-posse/mastodon'
 require 'sanitize'
 require 'kramdown'
 require 'kramdown-parser-gfm'
@@ -25,14 +26,25 @@ module JekyllPosse
 
               if data["mp-syndicate-to"] and data["date"] < Time.now
                 data["mp-syndicate-to"].each_with_index do |silo, index|
+                  service = JekyllPosse.configuration["mp-syndicate-to"][silo]
                   data["syndication"] = [] unless data.include?("syndication")
-                  if silo.include? "twitter.com"
+
+                  if service["type"] == "twitter"
                     twitter = JekyllPosse::TwitterPosse.new(data,sanitized)
                     response = twitter.send(collection.to_sym)
                     data["syndication"][index] = response
                     data["mp-syndicate-to"].slice!(index)
+
+                  elsif service["type"] == "mastodon"
+                    url = service["url"]
+                    mastodon = JekyllPosse::MastodonPosse.new(data, sanitized, url)
+                    response = mastodon.send(collection.to_sym)
+                    data["syndication"][index] = response
+                    data["mp-syndicate-to"].slice!(index)
                   else
+
                   end
+
                 end
               end
 
