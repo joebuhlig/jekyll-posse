@@ -27,10 +27,10 @@ module JekyllPosse
               if data["mp-syndicate-to"] and data["date"] < Time.now
                 if data["mp-syndicate-to"].kind_of?(Array)
                   data["mp-syndicate-to"].each_with_index do |silo, index|
-                    mp_syndicate(collection, data, sanitized, silo)
+                    data = mp_syndicate(collection, data, sanitized, silo)
                   end
                 else
-                  mp_syndicate(collection, data, sanitized, data["mp-syndicate-to"])
+                  data = mp_syndicate(collection, data, sanitized, data["mp-syndicate-to"])
                 end
               end
 
