@@ -54,7 +54,7 @@ module JekyllPosse
     private
     def format_tweet(tweet)
       puts tweet.inspect
-      return "https://twitter.com/#{tweet.user.screen_name}/status/#{tweet.id_str}"
+      return "https://twitter.com/#{tweet.user.screen_name}/status/#{tweet.id}"
     end
 
   end
