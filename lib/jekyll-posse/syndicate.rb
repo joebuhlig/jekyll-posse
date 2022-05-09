@@ -25,26 +25,12 @@ module JekyllPosse
               data = Psych.load(match)
 
               if data["mp-syndicate-to"] and data["date"] < Time.now
-                data["mp-syndicate-to"].each_with_index do |silo, index|
-                  service = JekyllPosse.configuration["mp-syndicate-to"][silo]
-                  data["syndication"] = [] unless data.include?("syndication")
-
-                  if service["type"] == "twitter"
-                    twitter = JekyllPosse::TwitterPosse.new(data,sanitized)
-                    response = twitter.send(collection.to_sym)
-                    data["syndication"][index] = response
-                    data["mp-syndicate-to"].slice!(index)
-
-                  elsif service["type"] == "mastodon"
-                    url = service["url"]
-                    mastodon = JekyllPosse::MastodonPosse.new(data, sanitized, url)
-                    response = mastodon.send(collection.to_sym)
-                    data["syndication"][index] = response
-                    data["mp-syndicate-to"].slice!(index)
-                  else
-
+                if data["mp-syndicate-to"].kind_of?(Array)
+                  data["mp-syndicate-to"].each_with_index do |silo, index|
+                    process(collection, data, sanitized, silo)
                   end
-
+                else
+                  process(collection, data, sanitized, data["mp-syndicate-to"])
                 end
               end
 
@@ -54,6 +40,27 @@ module JekyllPosse
             end
           end
         end
+      end
+    end
+
+    def process(collection, data, sanitized, silo)
+      service = JekyllPosse.configuration["mp-syndicate-to"][silo]
+      data["syndication"] = [] unless data.include?("syndication")
+
+      if service["type"] == "twitter"
+        twitter = JekyllPosse::TwitterPosse.new(data,sanitized)
+        response = twitter.send(collection.to_sym)
+        data["syndication"][index] = response
+        data["mp-syndicate-to"].slice!(index)
+
+      elsif service["type"] == "mastodon"
+        url = service["url"]
+        mastodon = JekyllPosse::MastodonPosse.new(data, sanitized, url)
+        response = mastodon.send(collection.to_sym)
+        data["syndication"][index] = response
+        data["mp-syndicate-to"].slice!(index)
+      else
+
       end
     end
 
