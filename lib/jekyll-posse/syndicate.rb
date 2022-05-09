@@ -43,7 +43,7 @@ module JekyllPosse
       end
     end
 
-    def mp_syndicate(collection, data, sanitized, silo)
+    def self.mp_syndicate(collection, data, sanitized, silo)
       service = JekyllPosse.configuration["mp-syndicate-to"][silo]
       data["syndication"] = [] unless data.include?("syndication")
 
