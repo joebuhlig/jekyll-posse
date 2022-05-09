@@ -33,12 +33,12 @@ module JekyllPosse
 
     def reposts
       tweet = @client.retweet(@data["repost-of"])
-      format_tweet(tweet)
+      format_tweet(tweet[0])
     end
 
     def likes
       tweet = @client.favorite(@data["like-of"])
-      format_tweet(tweet)
+      format_tweet(tweet[0])
     end
 
     def photos
