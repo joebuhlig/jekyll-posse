@@ -3,6 +3,7 @@ require 'fileutils'
 require 'psych'
 require 'jekyll-posse/twitter'
 require 'jekyll-posse/mastodon'
+require 'jekyll-posse/tumblr'
 require 'sanitize'
 require 'kramdown'
 require 'kramdown-parser-gfm'
@@ -11,15 +12,15 @@ module JekyllPosse
   class Syndicate
 
     def self.process
-      JekyllPosse.collections.each do |collection|
-        if Jekyll.configuration["collections"][collection]["output"]
+      jekyll_conf = Jekyll.configuration.dup
+      @posse_conf = jekyll_conf["jekyll_posse"]
+      @posse_conf["collections"].each do |collection|
+        if jekyll_conf["collections"][collection]["output"]
           Dir["_#{collection}/*.md"].each do |file|
             content = File.read(file)
 
             if content =~ Jekyll::Document::YAML_FRONT_MATTER_REGEXP
               content = $POSTMATCH
-              rendered = Kramdown::Document.new(content).to_html
-              sanitized = Sanitize.fragment(rendered)
 
               match = Regexp.last_match[1] if Regexp.last_match
               data = Psych.load(match)
@@ -29,12 +30,12 @@ module JekyllPosse
 
                 if data["mp-syndicate-to"].kind_of?(Array)
                   data["mp-syndicate-to"].each_with_index do |silo, index|
-                    syndication_url = mp_syndicate(collection, data, sanitized, silo)
+                    syndication_url = mp_syndicate(collection, data, content, silo)
                     data["syndication"][index] = syndication_url
                     data["mp-syndicate-to"].slice!(index)
                   end
                 else
-                  syndication_url = mp_syndicate(collection, data, sanitized, data["mp-syndicate-to"])
+                  syndication_url = mp_syndicate(collection, data, content, data["mp-syndicate-to"])
                   data["syndication"][0] = syndication_url
                   data["mp-syndicate-to"] = ""
                 end
@@ -49,8 +50,10 @@ module JekyllPosse
       end
     end
 
-    def self.mp_syndicate(collection, data, sanitized, silo)
-      service = JekyllPosse.configuration["mp-syndicate-to"][silo]
+    def self.mp_syndicate(collection, data, content, silo)
+      service = @posse_conf["mp-syndicate-to"][silo]
+      rendered = Kramdown::Document.new(content).to_html
+      sanitized = Sanitize.fragment(rendered)
 
       if service["type"] == "twitter"
         twitter = JekyllPosse::TwitterPosse.new(data,sanitized)
@@ -59,6 +62,10 @@ module JekyllPosse
         url = service["url"]
         mastodon = JekyllPosse::MastodonPosse.new(data, sanitized, url)
         mastodon.send(collection.to_sym)
+      elsif service["type"] == "tumblr"
+        blog = service["blog"]
+        tumblr = JekyllPosse::TumblrPosse.new(data, rendered, blog)
+        tumblr.send(collection.to_sym)
       else
 
       end

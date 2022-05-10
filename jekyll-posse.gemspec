@@ -21,5 +21,6 @@ Gem::Specification.new do |s|
   s.add_dependency "jekyll", ">= 3.7", "< 5.0"
   s.add_dependency "kramdown-parser-gfm", ">= 1.1.0"
   s.add_dependency "tweetkit", ">= 0.2.0"
+  s.add_dependency "tumblr_client"
 end
 

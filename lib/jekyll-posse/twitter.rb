@@ -4,7 +4,6 @@ module JekyllPosse
   class TwitterPosse
 
     def initialize(data, content)
-      puts ENV
       @data = data
       @content = content
       @client = Twitter::REST::Client.new do |config|
