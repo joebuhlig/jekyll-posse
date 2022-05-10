@@ -53,8 +53,7 @@ module JekyllPosse
 
     private
     def format_tweet(tweet)
-      puts tweet.uri
-      return "https://twitter.com/#{tweet.user.screen_name}/status/#{tweet.id}"
+      return tweet.uri
     end
 
   end

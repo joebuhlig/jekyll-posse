@@ -23,6 +23,7 @@ module JekyllPosse
 
               match = Regexp.last_match[1] if Regexp.last_match
               data = Psych.load(match)
+              data["syndication"] = [] unless data.include?("syndication")
 
               if data["mp-syndicate-to"] and data["date"] < Time.now
 
@@ -34,7 +35,7 @@ module JekyllPosse
                   end
                 else
                   syndication_url = mp_syndicate(collection, data, sanitized, data["mp-syndicate-to"])
-                  data["syndication"] = syndication_url
+                  data["syndication"][0] = syndication_url
                   data["mp-syndicate-to"] = ""
                 end
 
@@ -50,7 +51,6 @@ module JekyllPosse
 
     def self.mp_syndicate(collection, data, sanitized, silo)
       service = JekyllPosse.configuration["mp-syndicate-to"][silo]
-      data["syndication"] = [] unless data.include?("syndication")
 
       if service["type"] == "twitter"
         twitter = JekyllPosse::TwitterPosse.new(data,sanitized)
