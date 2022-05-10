@@ -25,17 +25,22 @@ module JekyllPosse
               data = Psych.load(match)
 
               if data["mp-syndicate-to"] and data["date"] < Time.now
+
                 if data["mp-syndicate-to"].kind_of?(Array)
                   data["mp-syndicate-to"].each_with_index do |silo, index|
-                    data = mp_syndicate(collection, data, sanitized, silo)
+                    syndication_url = mp_syndicate(collection, data, sanitized, silo)
+                    data["syndication"][index] = syndication_url
+                    data["mp-syndicate-to"].slice!(index)
                   end
                 else
-                  data = mp_syndicate(collection, data, sanitized, data["mp-syndicate-to"])
+                  syndication_url = mp_syndicate(collection, data, sanitized, data["mp-syndicate-to"])
+                  data["syndication"] = syndication_url
+                  data["mp-syndicate-to"] = ""
                 end
+
               end
 
               data.delete("mp-syndicate-to") if (data["mp-syndicate-to"] == [])
-
               File.write(file, "#{Psych.dump(data)}---\n#{content}")
             end
           end
@@ -49,16 +54,11 @@ module JekyllPosse
 
       if service["type"] == "twitter"
         twitter = JekyllPosse::TwitterPosse.new(data,sanitized)
-        response = twitter.send(collection.to_sym)
-        data["syndication"][index] = response
-        data["mp-syndicate-to"].slice!(index)
-
+        twitter.send(collection.to_sym)
       elsif service["type"] == "mastodon"
         url = service["url"]
         mastodon = JekyllPosse::MastodonPosse.new(data, sanitized, url)
-        response = mastodon.send(collection.to_sym)
-        data["syndication"][index] = response
-        data["mp-syndicate-to"].slice!(index)
+        mastodon.send(collection.to_sym)
       else
 
       end
