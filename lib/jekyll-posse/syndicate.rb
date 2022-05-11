@@ -31,7 +31,7 @@ module JekyllPosse
                 if data["mp-syndicate-to"].kind_of?(Array)
                   data["mp-syndicate-to"].each_with_index do |silo, index|
                     syndication_url = mp_syndicate(collection, data, content, silo)
-                    data["syndication"][index] = syndication_url
+                    data["syndication"].push(syndication_url)
                     data["mp-syndicate-to"].slice!(index)
                   end
                 else
@@ -39,7 +39,7 @@ module JekyllPosse
                   data["syndication"][0] = syndication_url
                   data["mp-syndicate-to"] = ""
                 end
-
+                Jekyll.logger.info "Syndicated to:", syndication_url
               end
 
               data.delete("mp-syndicate-to") if (data["mp-syndicate-to"] == [])
