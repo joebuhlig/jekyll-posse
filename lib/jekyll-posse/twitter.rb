@@ -15,17 +15,17 @@ module JekyllPosse
     end
 
     def notes
-      tweet = @client.update(content)
+      tweet = @client.update(@content)
       format_tweet(tweet)
     end
 
     def replies
       if @data["photo"]
-        tweet = @client.update_with_media(content, File.new(@data["photo"]), in_reply_to_status: @data["in-reply-to"])
+        tweet = @client.update_with_media(@content, File.new(@data["photo"]), in_reply_to_status: @data["in-reply-to"])
       elsif @data["video"]
-        tweet = @client.update_with_media(content, File.new(@data["video"]), in_reply_to_status: @data["in-reply-to"])
+        tweet = @client.update_with_media(@content, File.new(@data["video"]), in_reply_to_status: @data["in-reply-to"])
       else
-        tweet = @client.update(content, in_reply_to_status: @data["in-reply-to"])
+        tweet = @client.update(@content, in_reply_to_status: @data["in-reply-to"])
       end
       format_tweet(tweet)
     end
@@ -41,12 +41,12 @@ module JekyllPosse
     end
 
     def photos
-      tweet = @client.update_with_media(content, File.new(@data["photo"]))
+      tweet = @client.update_with_media(@content, File.new(@data["photo"]))
       format_tweet(tweet)
     end
 
     def videos
-      tweet = @client.update_with_media(content, File.new(@data["video"]))
+      tweet = @client.update_with_media(@content, File.new(@data["video"]))
       format_tweet(tweet)
     end
 
