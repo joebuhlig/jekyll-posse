@@ -54,8 +54,7 @@ module JekyllPosse
       service = @posse_conf["mp-syndicate-to"][silo]
       rendered = Kramdown::Document.new(content).to_html
       sanitized = Sanitize.fragment(rendered)
-puts service
-abort
+
       if service["type"] == "twitter"
         twitter = JekyllPosse::TwitterPosse.new(data,sanitized)
         twitter.send(collection.to_sym)
