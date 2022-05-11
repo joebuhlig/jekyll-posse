@@ -11,7 +11,8 @@ module JekyllPosse
     end
 
     def notes
-      toot = RestClient.post "#{@url}/api/v1/statuses", {"status": @content}, {content_type: "application/json", :Authorization => "Bearer #{@token}"}
+      payload = {"status": @content}
+      toot = RestClient.post "#{@url}/api/v1/statuses", payload.to_json, {content_type: "application/json", :Authorization => "Bearer #{@token}"}
       format_toot(toot)
     end
 

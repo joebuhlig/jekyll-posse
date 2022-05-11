@@ -11,6 +11,7 @@ module JekyllPosse
     end
 
     def notes
+      puts @content
       post = RestClient.post "https://api.tumblr.com/v2/blog/#{@blog}/post", {"body": @content}, {content_type: "application/json", :Authorization => "Bearer #{@token}"}
       format_post(post.body)
     end
