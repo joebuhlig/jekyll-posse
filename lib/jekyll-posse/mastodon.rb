@@ -5,14 +5,15 @@ module JekyllPosse
 
     def initialize(data, content, url)
       @data = data
-      @content = format_content(content)
+      content.sub!(/(@\w*)/, '\1@twitter.com')
+      @content = content
       @url = url
       @token = ENV["MASTODON_BEARER_TOKEN"]
     end
 
     def notes
       payload = {"status": @content}
-      toot = RestClient.post "#{@url}/api/v1/statuses", payload.to_json, {:content_type => "application/json", :Authorization => "Bearer #{@token}"}
+      toot = RestClient.post "#{@url}/api/v1/statuses", payload.to_json, {:content_type => :json, :Authorization => "Bearer #{@token}"}
       format_toot(toot)
     end
 
@@ -57,10 +58,6 @@ module JekyllPosse
     private
     def format_toot(toot)
       return JSON.parse(toot.body)["url"]
-    end
-
-    def format_content(content)
-      content.sub!(/(@\w*)/, '\1@twitter.com')
     end
 
     def post_media(media)

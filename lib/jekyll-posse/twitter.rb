@@ -52,7 +52,7 @@ module JekyllPosse
 
     private
     def format_tweet(tweet)
-      return tweet.uri
+      return tweet.uri.to_s
     end
 
   end
