@@ -27,7 +27,7 @@ module JekyllPosse
               data["syndication"] = [] unless data.include?("syndication")
 
               if data["mp-syndicate-to"] and data["date"] < Time.now
-
+                puts data.inspect
                 if data["mp-syndicate-to"].kind_of?(Array)
                   data["mp-syndicate-to"].each_with_index do |silo, index|
                     syndication_url = mp_syndicate(collection, data, content, silo)
@@ -39,7 +39,7 @@ module JekyllPosse
                   data["syndication"][0] = syndication_url
                   data["mp-syndicate-to"] = ""
                 end
-                Jekyll.logger.info "Syndicated to:", syndication_url
+                Jekyll.logger.info "Syndicated to: #{syndication_url}"
               end
 
               data.delete("mp-syndicate-to") if (data["mp-syndicate-to"] == [])
@@ -54,7 +54,8 @@ module JekyllPosse
       service = @posse_conf["mp-syndicate-to"][silo]
       rendered = Kramdown::Document.new(content).to_html
       sanitized = Sanitize.fragment(rendered)
-
+puts service
+abort
       if service["type"] == "twitter"
         twitter = JekyllPosse::TwitterPosse.new(data,sanitized)
         twitter.send(collection.to_sym)
