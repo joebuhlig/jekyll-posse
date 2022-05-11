@@ -7,12 +7,12 @@ module JekyllPosse
       @data = data
       @content = content
       @blog = blog
-      @token = ENV["TUMBLR_BEARER_TOKEN"]
+      @token = @token || get_bearer_token
     end
 
     def notes
-      puts @content
-      post = RestClient.post "https://api.tumblr.com/v2/blog/#{@blog}/post", {"body": @content}, {content_type: "application/json", :Authorization => "Bearer #{@token}"}
+      payload = {"body": @content}
+      post = RestClient.post "https://api.tumblr.com/v2/blog/#{@blog}/post", payload.to_json, {:content_type => :json, :Authorization => "Bearer #{@token}"}
       format_post(post.body)
     end
 
@@ -35,6 +35,10 @@ module JekyllPosse
     def format_post(post)
       post = JSON.parse(post)
       return "https://#{@blog}/#{post["response"]["id_string"]}/"
+    end
+
+    def get_bearer_token
+      @token = ENV["TUMBLR_BEARER_TOKEN"]
     end
 
   end
