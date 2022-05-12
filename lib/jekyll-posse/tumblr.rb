@@ -8,6 +8,7 @@ module JekyllPosse
       @content = content
       @blog = blog
       @token = ENV["TUMBLR_BEARER_TOKEN"]
+      puts @token
     end
 
     def notes
