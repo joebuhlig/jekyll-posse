@@ -27,7 +27,6 @@ module JekyllPosse
               data["syndication"] = [] unless data.include?("syndication")
 
               if data["mp-syndicate-to"] and data["date"] < Time.now
-                puts data
                 if data["mp-syndicate-to"].kind_of?(Array)
                   data["mp-syndicate-to"].each_with_index do |silo, index|
                     syndication_url = mp_syndicate(collection, data, content, silo)
@@ -54,7 +53,7 @@ module JekyllPosse
 
     def self.mp_syndicate(collection, data, content, silo)
       service = @posse_conf["mp-syndicate-to"][silo]
-      puts "Syndicating to #{service.capitalize}"
+      puts "Syndicating to #{silo}"
       rendered = Kramdown::Document.new(content).to_html
       sanitized = Sanitize.fragment(rendered)
 
