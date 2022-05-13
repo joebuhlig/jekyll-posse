@@ -33,13 +33,14 @@ module JekyllPosse
                     syndication_url = mp_syndicate(collection, data, content, silo)
                     data["syndication"].push(syndication_url)
                     data["mp-syndicate-to"].slice!(index)
-                    puts "Syndicated to: #{syndication_url}"
+                    puts "Syndicated: #{syndication_url}"
                   end
                 else
-                  syndication_url = mp_syndicate(collection, data, content, data["mp-syndicate-to"])
+                  silo = data["mp-syndicate-to"]
+                  syndication_url = mp_syndicate(collection, data, content, silo)
                   data["syndication"][0] = syndication_url
                   data["mp-syndicate-to"] = ""
-                  puts "Syndicated to: #{syndication_url}"
+                  puts "Syndicated: #{syndication_url}"
                 end
               end
 
@@ -52,23 +53,19 @@ module JekyllPosse
     end
 
     def self.mp_syndicate(collection, data, content, silo)
-      puts silo
       service = @posse_conf["mp-syndicate-to"][silo]
-      puts service
+      puts "Syndicating to #{service.capitalize}"
       rendered = Kramdown::Document.new(content).to_html
       sanitized = Sanitize.fragment(rendered)
 
       if service["type"] == "twitter"
-        puts "Syndicating to Twitter"
         twitter = JekyllPosse::TwitterPosse.new(data,sanitized)
         twitter.send(collection.to_sym)
       elsif service["type"] == "mastodon"
-        puts "Syndicating to Mastodon"
         url = service["url"]
         mastodon = JekyllPosse::MastodonPosse.new(data, sanitized, url)
         mastodon.send(collection.to_sym)
       elsif service["type"] == "tumblr"
-        puts "Syndicating to Tumblr"
         blog = service["blog"]
         tumblr = JekyllPosse::TumblrPosse.new(data, rendered, blog)
         tumblr.send(collection.to_sym)
