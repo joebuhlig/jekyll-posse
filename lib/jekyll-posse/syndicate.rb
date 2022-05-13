@@ -27,19 +27,20 @@ module JekyllPosse
               data["syndication"] = [] unless data.include?("syndication")
 
               if data["mp-syndicate-to"] and data["date"] < Time.now
-                puts data.inspect
+                puts data
                 if data["mp-syndicate-to"].kind_of?(Array)
                   data["mp-syndicate-to"].each_with_index do |silo, index|
                     syndication_url = mp_syndicate(collection, data, content, silo)
                     data["syndication"].push(syndication_url)
                     data["mp-syndicate-to"].slice!(index)
+                    puts "Syndicated to: #{syndication_url}"
                   end
                 else
                   syndication_url = mp_syndicate(collection, data, content, data["mp-syndicate-to"])
                   data["syndication"][0] = syndication_url
                   data["mp-syndicate-to"] = ""
+                  puts "Syndicated to: #{syndication_url}"
                 end
-                Jekyll.logger.info "Syndicated to: #{syndication_url}"
               end
 
               data.delete("mp-syndicate-to") if (data["mp-syndicate-to"] == [])
