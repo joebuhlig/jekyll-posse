@@ -96,6 +96,7 @@ module JekyllPosse
         end
         url
       rescue => error
+        puts error
         puts error.backtrace
         return false
       end
