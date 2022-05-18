@@ -71,7 +71,7 @@ module JekyllPosse
 
     def download_tweet(url)
       id = url.split('/').last.to_i
-      status = twitter.status(id, tweet_mode: 'extended')
+      status = @client.status(id, tweet_mode: 'extended')
       tweet = status.attrs
       File.open("_data/tweets/#{id}.json","w") do |f|
         f.write(tweet.to_json)
