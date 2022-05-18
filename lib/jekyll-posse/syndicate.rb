@@ -84,16 +84,18 @@ module JekyllPosse
       begin
         if service["type"] == "twitter"
           twitter = JekyllPosse::TwitterPosse.new(post.data, sanitized, download)
-          twitter.send(post.type.to_sym)
+          url = twitter.send(post.type.to_sym)
+          puts url
         elsif service["type"] == "mastodon"
           url = service["url"]
           mastodon = JekyllPosse::MastodonPosse.new(post.data, sanitized, url, download)
-          mastodon.send(post.type.to_sym)
+          url = mastodon.send(post.type.to_sym)
         elsif service["type"] == "tumblr"
           blog = service["blog"]
           tumblr = JekyllPosse::TumblrPosse.new(post.data, rendered, blog, download)
-          tumblr.send(post.type.to_sym)
+          url = tumblr.send(post.type.to_sym)
         end
+        url
       rescue
         false
       end
