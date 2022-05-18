@@ -10,6 +10,7 @@ require 'kramdown-parser-gfm'
 
 module JekyllPosse
   class Syndicate
+    YAML_FRONT_MATTER_REGEXP = %r!\A(---\s*\n.*?\n?)^((---|\.\.\.)\s*$\n?)!m.freeze
 
     def self.process
       @jekyll_conf = Jekyll.configuration.dup
@@ -22,30 +23,42 @@ module JekyllPosse
         if collection.metadata["output"]
           collection.docs.each do |post|
             post.read
-            data = post.data
+            raw = File.read(post.path)
+            raw =~ Jekyll::Document::YAML_FRONT_MATTER_REGEXP
+            content = $POSTMATCH
+            data = Psych.load(Regexp.last_match(1))
             data["syndication"] = [] unless data.include?("syndication")
             if data["mp-syndicate-to"] and data["date"] < Time.now
               download = false
               if data["mp-syndicate-to"].kind_of?(Array)
+                to_delete = []
                 data["mp-syndicate-to"].each do |silo|
-                  puts @posse_conf["download"]
                   if @posse_conf["download"] and @posse_conf["download"][name] and @posse_conf["download"][name][silo]
                      download = true
                   end
                   syndication_url = mp_syndicate(post, silo, download)
-                  data["syndication"].push(syndication_url)
-                  data["mp-syndicate-to"].delete(silo)
-                  puts "Syndicated: #{syndication_url}"
+                  if syndication_url
+                    data["syndication"].push(syndication_url)
+                    to_delete.push(silo)
+                    puts "Syndicated: #{syndication_url}"
+                  else
+                    puts "FAILED TO SYNDICATE: #{silo}"
+                  end
                 end
+                data["mp-syndicate-to"].delete_if { |item| to_delete.include? item }
               else
                 silo = data["mp-syndicate-to"]
                 if @posse_conf["download"] and @posse_conf["download"][name] and @posse_conf["download"][name][silo]
                   download = true
                 end
                 syndication_url = mp_syndicate(post, silo, download)
-                data["syndication"][0] = syndication_url
-                data["mp-syndicate-to"] = ""
-                puts "Syndicated: #{syndication_url}"
+                if syndication_url
+                  data["syndication"][0] = syndication_url
+                  data["mp-syndicate-to"] = ""
+                  puts "Syndicated: #{syndication_url}"
+                else
+                  puts "FAILED TO SYNDICATE: #{silo}"
+                end
               end
               data.delete("mp-syndicate-to") if (data["mp-syndicate-to"] == [])
               File.write(post.path, "#{Psych.dump(data)}---\n#{post.content}")
@@ -68,19 +81,21 @@ module JekyllPosse
       rendered = Kramdown::Document.new(content).to_html
       sanitized = Sanitize.fragment(rendered)
 
-      if service["type"] == "twitter"
-        twitter = JekyllPosse::TwitterPosse.new(post.data, sanitized, download)
-        twitter.send(post.type.to_sym)
-      elsif service["type"] == "mastodon"
-        url = service["url"]
-        mastodon = JekyllPosse::MastodonPosse.new(post.data, sanitized, url, download)
-        mastodon.send(post.type.to_sym)
-      elsif service["type"] == "tumblr"
-        blog = service["blog"]
-        tumblr = JekyllPosse::TumblrPosse.new(post.data, rendered, blog, download)
-        tumblr.send(post.type.to_sym)
-      else
-
+      begin
+        if service["type"] == "twitter"
+          twitter = JekyllPosse::TwitterPosse.new(post.data, sanitized, download)
+          twitter.send(post.type.to_sym)
+        elsif service["type"] == "mastodon"
+          url = service["url"]
+          mastodon = JekyllPosse::MastodonPosse.new(post.data, sanitized, url, download)
+          mastodon.send(post.type.to_sym)
+        elsif service["type"] == "tumblr"
+          blog = service["blog"]
+          tumblr = JekyllPosse::TumblrPosse.new(post.data, rendered, blog, download)
+          tumblr.send(post.type.to_sym)
+        end
+      rescue
+        false
       end
     end
 
