@@ -25,9 +25,11 @@ module JekyllPosse
             data = post.data
             data["syndication"] = [] unless data.include?("syndication")
             if data["mp-syndicate-to"] and data["date"] < Time.now
+              download = false
               if data["mp-syndicate-to"].kind_of?(Array)
                 data["mp-syndicate-to"].each do |silo|
-                  if @posse_conf["download"][post.type.to_s][silo]
+                  puts @posse_conf["download"]
+                  if @posse_conf["download"] and @posse_conf["download"][name] and @posse_conf["download"][name][silo]
                      download = true
                   end
                   syndication_url = mp_syndicate(post, silo, download)
@@ -37,7 +39,7 @@ module JekyllPosse
                 end
               else
                 silo = data["mp-syndicate-to"]
-                if @posse_conf["download"][post.type.to_s][silo]
+                if @posse_conf["download"] and @posse_conf["download"][name] and @posse_conf["download"][name][silo]
                   download = true
                 end
                 syndication_url = mp_syndicate(post, silo, download)
