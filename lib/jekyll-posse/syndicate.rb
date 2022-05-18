@@ -85,7 +85,6 @@ module JekyllPosse
         if service["type"] == "twitter"
           twitter = JekyllPosse::TwitterPosse.new(post.data, sanitized, download)
           url = twitter.send(post.type.to_sym)
-          puts url
         elsif service["type"] == "mastodon"
           url = service["url"]
           mastodon = JekyllPosse::MastodonPosse.new(post.data, sanitized, url, download)
@@ -97,6 +96,7 @@ module JekyllPosse
         end
         url
       rescue
+        puts url
         false
       end
     end

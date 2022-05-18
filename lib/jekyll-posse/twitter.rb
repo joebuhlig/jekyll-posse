@@ -21,12 +21,13 @@ module JekyllPosse
     end
 
     def replies
+      id = @data["in-reply-to"].split('/').last.to_i
       if @data["photo"]
-        tweet = @client.update_with_media(@content, File.new(@data["photo"]), in_reply_to_status: @data["in-reply-to"])
+        tweet = @client.update_with_media(@content, File.new(@data["photo"]), in_reply_to_status_id: id)
       elsif @data["video"]
-        tweet = @client.update_with_media(@content, File.new(@data["video"]), in_reply_to_status: @data["in-reply-to"])
+        tweet = @client.update_with_media(@content, File.new(@data["video"]), in_reply_to_status_id: id)
       else
-        tweet = @client.update(@content, in_reply_to_status: @data["in-reply-to"])
+        tweet = @client.update(@content, in_reply_to_status_id: id)
       end
       url = format_tweet(tweet)
       if @download
