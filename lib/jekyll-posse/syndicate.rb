@@ -95,9 +95,9 @@ module JekyllPosse
           url = tumblr.send(post.type.to_sym)
         end
         url
-      rescue
-        puts url
-        false
+      rescue => error
+        puts error.backtrace
+        return false
       end
     end
 
