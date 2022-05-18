@@ -3,10 +3,11 @@ require 'rest-client'
 module JekyllPosse
   class TumblrPosse
 
-    def initialize(data, content, blog)
+    def initialize(data, content, blog, download = false)
       @data = data
       @content = content
       @blog = blog
+      @download = download
       @token = ENV["TUMBLR_BEARER_TOKEN"]
     end
 

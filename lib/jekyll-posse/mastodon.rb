@@ -3,11 +3,12 @@ require 'rest-client'
 module JekyllPosse
   class MastodonPosse
 
-    def initialize(data, content, url)
+    def initialize(data, content, url, download = false)
       @data = data
       content.sub!(/(@\w*)/, '\1@twitter.com')
       @content = content
       @url = url
+      @download = download
       @token = ENV["MASTODON_BEARER_TOKEN"]
     end
 
