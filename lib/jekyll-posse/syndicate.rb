@@ -33,7 +33,7 @@ module JekyllPosse
               if data["mp-syndicate-to"].kind_of?(Array)
                 to_delete = []
                 data["mp-syndicate-to"].each do |silo|
-                  if @posse_conf["download"] and @posse_conf["download"][name.to_s] and @posse_conf["download"][name.to_s][silo]
+                  if @posse_conf.include? "download" and @posse_conf["download"].include? name and @posse_conf["download"][name].include? silo
                      download = true
                   end
                   syndication_url = mp_syndicate(post, silo, download)
