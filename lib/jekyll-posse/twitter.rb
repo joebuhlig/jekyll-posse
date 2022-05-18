@@ -38,7 +38,7 @@ module JekyllPosse
 
     def reposts
       tweet = @client.retweet(@data["repost-of"])
-      url = format_tweet(tweet)
+      url = format_tweet(tweet[0])
       if @download
         download_tweet(url)
       end
@@ -47,6 +47,7 @@ module JekyllPosse
 
     def likes
       tweet = @client.favorite(@data["like-of"])
+      url = format_tweet(tweet[0])
       if @download
         download_tweet(url)
       end
