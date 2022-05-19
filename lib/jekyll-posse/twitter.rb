@@ -40,7 +40,7 @@ module JekyllPosse
       tweet = @client.retweet(@data["repost-of"])
       url = format_tweet(tweet[0])
       if @download
-        download_tweet(url)
+        download_tweet(@data["repost-of"])
       end
       return url
     end
@@ -49,7 +49,7 @@ module JekyllPosse
       tweet = @client.favorite(@data["like-of"])
       url = format_tweet(tweet[0])
       if @download
-        download_tweet(url)
+        download_tweet(@data["like-of"])
       end
       return url
     end
@@ -82,12 +82,19 @@ module JekyllPosse
       URI.open("assets/avatars/twitter/#{tweet[:user][:screen_name]}.jpg", 'wb') do |file|
         file << URI.open("#{avatar_url}").read
       end
+
       if tweet[:extended_entities]
         tweet[:extended_entities][:media].each do |entity|
-          url = entity[:media_url_https].sub("https://", "")
-          FileUtils.mkdir_p(File.dirname("assets/twitter/#{url}"))
-          URI.open("assets/twitter/#{url}", 'wb') do |file|
-            file << URI.open(entity[:media_url_https]).read
+          if entity["type"] = "video"
+            variant = entity[:video_info][:variants].sort_by{ |variant| variant[:bitrate].to_i }.reverse[0]
+            url = variant[:url].split("?")[0].split("#")[0]
+          else
+            url = entity[:media_url_https]
+          end
+          path = url.sub("https://","")
+          FileUtils.mkdir_p(File.dirname("assets/twitter/#{path}"))
+          URI.open("assets/twitter/#{path}", 'wb') do |file|
+            file << URI.open(url).read
           end
         end
       end
