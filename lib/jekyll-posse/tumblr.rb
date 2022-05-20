@@ -1,20 +1,28 @@
+require 'tumblr_client'
 require 'rest-client'
 
 module JekyllPosse
   class TumblrPosse
 
-    def initialize(data, content, blog, download = false)
+    def initialize(data = nil, content = nil, blog = nil, download = false)
       @data = data
       @content = content
       @blog = blog
       @download = download
-      @token = ENV["TUMBLR_BEARER_TOKEN"]
+
+      Tumblr.configure do |config|
+        config.consumer_key = ENV["TUMBLR_CONSUMER_KEY"]
+        config.consumer_secret = ENV["TUMBLR_CONSUMER_SECRET"]
+        config.oauth_token = ENV["TUMBLR_ACCESS_TOKEN"]
+        config.oauth_token_secret = ENV["TUMBLR_ACCESS_TOKEN_SECRET"]
+      end
+
+      @client = Tumblr::Client.new
     end
 
     def notes
-      payload = {"body": @content}
-      post = RestClient.post "https://api.tumblr.com/v2/blog/#{@blog}/post", payload.to_json, {:content_type => :json, :Authorization => "Bearer #{@token}"}
-      format_post(post.body)
+      post = @client.text(@blog, {:body => @content})
+      format_post(post)
     end
 
     def replies
@@ -32,10 +40,12 @@ module JekyllPosse
     def videos
     end
 
-    private
     def format_post(post)
-      post = JSON.parse(post)
-      return "https://#{@blog}/#{post["response"]["id_string"]}/"
+      id = post["id_string"]
+      return "https://#{@blog}/#{id}/"
+    end
+
+    def download_post(url)
     end
 
   end
