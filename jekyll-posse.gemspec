@@ -22,5 +22,7 @@ Gem::Specification.new do |s|
   s.add_dependency "kramdown-parser-gfm", ">= 1.1.0"
   s.add_dependency "tweetkit", ">= 0.2.0"
   s.add_dependency "tumblr_client"
+  s.add_dependency "oauth"
+  s.add_dependency "aws-sdk-s3"
 end
 

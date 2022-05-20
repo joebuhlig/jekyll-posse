@@ -1,9 +1,11 @@
 require 'twitter'
+require 'aws-sdk-s3'
+require 'open-uri'
 
 module JekyllPosse
   class TwitterPosse
 
-    def initialize(data, content, download = false)
+    def initialize(data = nil, content = nil, download = false)
       @data = data
       @content = content
       @download = download
@@ -64,40 +66,56 @@ module JekyllPosse
       format_tweet(tweet)
     end
 
-    private
     def format_tweet(tweet)
       return tweet.uri.to_s
     end
 
     def download_tweet(url)
+      s3 = Aws::S3::Client.new(
+        access_key_id: ENV["S3_ACCESS_KEY"],
+        secret_access_key: ENV["S3_SECRET_KEY"],
+        endpoint: ENV["S3_POSSE_ENDPOINT"],
+        region: ENV["S3_POSSE_REGION"]
+      )
+
       id = url.split('/').last.to_i
       status = @client.status(id, tweet_mode: 'extended')
       tweet = status.attrs
-      File.open("_data/tweets/#{id}.json","w") do |f|
-        f.write(tweet.to_json)
-      end
+
       avatar_url = tweet[:user][:profile_image_url_https]
       host = URI.parse(avatar_url).host
       path = URI.parse(avatar_url).path
-      URI.open("assets/avatars/twitter/#{tweet[:user][:screen_name]}.jpg", 'wb') do |file|
-        file << URI.open("#{avatar_url}").read
-      end
 
+      obj = Aws::S3::Object.new(client: s3, bucket_name: ENV["S3_POSSE_BUCKET"], key: "avatars/twitter/#{tweet[:user][:screen_name]}.jpg")
+      obj.upload_stream(acl: 'public-read') do |write_stream|
+        IO.copy_stream(URI.open(tweet[:user][:profile_image_url_https]), write_stream)
+      end
+      tweet[:avatar] = "avatars/twitter/#{tweet[:user][:screen_name]}.jpg"
       if tweet[:extended_entities]
         tweet[:extended_entities][:media].each do |entity|
-          if entity["type"] = "video"
+          puts entity
+          if entity[:type] == "video"
+            tweet[:video] = [] unless tweet.include? :video
             variant = entity[:video_info][:variants].sort_by{ |variant| variant[:bitrate].to_i }.reverse[0]
             url = variant[:url].split("?")[0].split("#")[0]
+            path = url.sub("https://","")
+            tweet[:video].push("media/twitter/#{path}")
           else
+            tweet[:photo] = [] unless tweet.include? :photo
             url = entity[:media_url_https]
+            path = url.sub("https://","")
+            tweet[:photo].push("media/twitter/#{path}")
           end
-          path = url.sub("https://","")
-          FileUtils.mkdir_p(File.dirname("assets/twitter/#{path}"))
-          URI.open("assets/twitter/#{path}", 'wb') do |file|
-            file << URI.open(url).read
+          obj = Aws::S3::Object.new(client: s3, bucket_name: ENV["S3_POSSE_BUCKET"], key: "media/twitter/#{path}")
+          obj.upload_stream(acl: 'public-read') do |write_stream|
+            IO.copy_stream(URI.open(url), write_stream)
           end
         end
       end
+      File.open("_data/tweets/#{id}.json","w") do |f|
+        f.write(tweet.to_json)
+      end
+      puts "Tweet downloaded to: _data/tweets/#{id}.json"
     end
 
   end
