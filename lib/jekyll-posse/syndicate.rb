@@ -111,7 +111,7 @@ module JekyllPosse
       lines = post.content.split("\n\n")
       lines.to_enum.with_index.reverse_each do |line, index|
         unless line.match?(/(^<http.*>$|^\[.*\]\(http.*\)$)/)
-          lines[index] = line + " (<#{domain}#{shortlink}>)"
+          lines[index] = line + " (#{domain} #{shortlink})"
           break
         end
       end
