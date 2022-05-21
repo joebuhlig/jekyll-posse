@@ -57,7 +57,7 @@ module JekyllPosse
     end
 
     def photos
-      tweet = @client.update_with_media(@content, File.new(@data["photo"]))
+      tweet = @client.update_with_media(@content, File.new(@data["photo"][0]["url"]))
       format_tweet(tweet)
     end
 

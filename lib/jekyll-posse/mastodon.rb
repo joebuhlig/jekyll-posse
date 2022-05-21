@@ -46,7 +46,7 @@ module JekyllPosse
     end
 
     def photos
-      media_id = post_media(@data["photo"])
+      media_id = post_media(@data["photo"][0]["url"])
       toot = RestClient.post "#{@url}/api/v1/statuses", {"status": @content, "media_ids": media_id}, {content_type: "application/json", :Authorization => "Bearer #{@token}"}
       format_toot(toot)
     end
