@@ -94,13 +94,13 @@ module JekyllPosse
       status = @client.status(id, tweet_mode: 'extended')
       tweet = status.attrs
 
-      avatar_url = tweet[:user][:profile_image_url_https]
+      avatar_url = tweet[:user][:profile_image_url_https].sub('_normal','_200x200')
       host = URI.parse(avatar_url).host
       path = URI.parse(avatar_url).path
 
       obj = Aws::S3::Object.new(client: s3, bucket_name: ENV["S3_POSSE_BUCKET"], key: "avatars/twitter/#{tweet[:user][:screen_name]}.jpg")
       obj.upload_stream(acl: 'public-read') do |write_stream|
-        IO.copy_stream(URI.open(tweet[:user][:profile_image_url_https]), write_stream)
+        IO.copy_stream(URI.open(avatar_url), write_stream)
       end
       tweet[:avatar] = "avatars/twitter/#{tweet[:user][:screen_name]}.jpg"
       if tweet[:extended_entities]
