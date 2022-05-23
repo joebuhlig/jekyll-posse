@@ -1,6 +1,7 @@
 require 'twitter'
 require 'aws-sdk-s3'
 require 'open-uri'
+require 'mime-types'
 
 module JekyllPosse
   class TwitterPosse
@@ -98,8 +99,9 @@ module JekyllPosse
       host = URI.parse(avatar_url).host
       path = URI.parse(avatar_url).path
 
+      file_type = MIME::Types.type_for(avatar_url.split('.').last).first
       obj = Aws::S3::Object.new(client: s3, bucket_name: ENV["S3_POSSE_BUCKET"], key: "avatars/twitter/#{tweet[:user][:screen_name]}.jpg")
-      obj.upload_stream(acl: 'public-read') do |write_stream|
+      obj.upload_stream(acl: 'public-read', content_type: file_type.to_s) do |write_stream|
         IO.copy_stream(URI.open(avatar_url), write_stream)
       end
       tweet[:avatar] = "avatars/twitter/#{tweet[:user][:screen_name]}.jpg"
@@ -118,8 +120,9 @@ module JekyllPosse
             path = url.sub("https://","")
             tweet[:photo].push("media/twitter/#{path}")
           end
+          file_type = MIME::Types.type_for(url.split('.').last).first
           obj = Aws::S3::Object.new(client: s3, bucket_name: ENV["S3_POSSE_BUCKET"], key: "media/twitter/#{path}")
-          obj.upload_stream(acl: 'public-read') do |write_stream|
+          obj.upload_stream(acl: 'public-read', content_type: file_type.to_s) do |write_stream|
             IO.copy_stream(URI.open(url), write_stream)
           end
         end
