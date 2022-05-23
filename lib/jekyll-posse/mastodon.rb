@@ -22,11 +22,11 @@ module JekyllPosse
     def replies
       in_reply_to_id = @data["in-reply-to"].split("/").last.to_i
       if @data["photo"]
-        media_id = post_media(@data["photo"])
-        toot = RestClient.post "#{@url}/api/v1/statuses", {"status": @content, "media_ids": media_id, "in_reply_to_id": in_reply_to_id}, {content_type: "application/json", :Authorization => "Bearer #{@token}"}
+        media_ids = post_media(@data["photo"])
+        toot = RestClient.post "#{@url}/api/v1/statuses", {"status": @content, "media_ids": media_ids, "in_reply_to_id": in_reply_to_id}, {content_type: "application/json", :Authorization => "Bearer #{@token}"}
       elsif @data["video"]
-        media_id = post_media(@data["video"])
-        toot = RestClient.post "#{@url}/api/v1/statuses", {"status": @content, "media_ids": media_id, "in_reply_to_id": in_reply_to_id}, {content_type: "application/json", :Authorization => "Bearer #{@token}"}
+        media_ids = post_media(@data["video"])
+        toot = RestClient.post "#{@url}/api/v1/statuses", {"status": @content, "media_ids": media_ids, "in_reply_to_id": in_reply_to_id}, {content_type: "application/json", :Authorization => "Bearer #{@token}"}
       else
         toot = RestClient.post "#{@url}/api/v1/statuses", {"status": @content, "in_reply_to_id": in_reply_to_id}, {content_type: "application/json", :Authorization => "Bearer #{@token}"}
       end
@@ -46,14 +46,14 @@ module JekyllPosse
     end
 
     def photos
-      media_id = post_media(@data["photo"][0]["url"])
-      toot = RestClient.post "#{@url}/api/v1/statuses", {"status": @content, "media_ids": media_id}, {content_type: "application/json", :Authorization => "Bearer #{@token}"}
+      media_ids = post_media(@data["photo"])
+      toot = RestClient.post "#{@url}/api/v1/statuses", {"status": @content, "media_ids": media_ids}, {content_type: "application/json", :Authorization => "Bearer #{@token}"}
       format_toot(toot)
     end
 
     def videos
-      media_id = post_media(@data["video"])
-      toot = RestClient.post "#{@url}/api/v1/statuses", {"status": @content, "media_ids": media_id}, {content_type: "application/json", :Authorization => "Bearer #{@token}"}
+      media_ids = post_media(@data["video"])
+      toot = RestClient.post "#{@url}/api/v1/statuses", {"status": @content, "media_ids": media_ids}, {content_type: "application/json", :Authorization => "Bearer #{@token}"}
       format_toot(toot)
     end
 
@@ -63,8 +63,12 @@ module JekyllPosse
     end
 
     def post_media(media)
-      toot = RestClient.post "#{@url}/api/v1/media", {:file => File.new(media)}, {:Authorization => "Bearer #{@token}"}
-      JSON.parse(toot.body)["id"]
+      media_ids = []
+      media.each do |media_file|
+        toot = RestClient.post "#{@url}/api/v1/media", {:file => File.new(media_file)}, {:Authorization => "Bearer #{@token}"}
+        media_ids.push(JSON.parse(toot.body)["id"])
+      end
+      media_ids
     end
 
   end

@@ -25,9 +25,11 @@ module JekyllPosse
     def replies
       id = @data["in-reply-to"].split('/').last.to_i
       if @data["photo"]
-        tweet = @client.update_with_media(@content, File.new(@data["photo"]), in_reply_to_status_id: id)
+        media = create_media_files(@data["photo"])
+        tweet = @client.update_with_media(@content, media, in_reply_to_status_id: id)
       elsif @data["video"]
-        tweet = @client.update_with_media(@content, File.new(@data["video"]), in_reply_to_status_id: id)
+        media = create_media_files(@data["video"])
+        tweet = @client.update_with_media(@content, media, in_reply_to_status_id: id)
       else
         tweet = @client.update(@content, in_reply_to_status_id: id)
       end
@@ -57,13 +59,23 @@ module JekyllPosse
     end
 
     def photos
-      tweet = @client.update_with_media(@content, File.new(@data["photo"][0]["url"]))
+      media = create_media_files(@data["photo"])
+      tweet = @client.update_with_media(@content, media)
       format_tweet(tweet)
     end
 
     def videos
-      tweet = @client.update_with_media(@content, File.new(@data["video"]))
+      media = create_media_files(@data["video"])
+      tweet = @client.update_with_media(@content, media)
       format_tweet(tweet)
+    end
+
+    def create_media_files(media)
+      files = []
+      media.each do |media_file|
+        files.push(File.new(media_file))
+      end
+      files
     end
 
     def format_tweet(tweet)

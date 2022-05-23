@@ -35,11 +35,13 @@ module JekyllPosse
     end
 
     def photos
-      post = @client.photo(@blog, {:caption => @content, :data => [@data["photo"][0]["url"]]})
+      post = @client.photo(@blog, {:caption => @content, :data => @data["photo"]})
       format_post(post)
     end
 
     def videos
+      post = @client.photo(@blog, {:caption => @content, :data => @data["video"]})
+      format_post(post)
     end
 
     def format_post(post)
