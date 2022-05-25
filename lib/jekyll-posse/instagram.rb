@@ -6,7 +6,6 @@ module JekyllPosse
 
     def initialize(data, content, download = false)
       @data = data
-      content.sub!(/(@\w*)/, '\1@twitter.com')
       @content = content
       @download = download
       @instagram_id = ENV["INSTAGRAM_ACCOUNT_ID"]
@@ -17,6 +16,15 @@ module JekyllPosse
     end
 
     def replies
+      reply_to_url = @data["in-reply-to"]
+      comment_id = reply_to_url.split('-').last
+      message = CGI::escape(@content)
+      comment_url = "https://graph.facebook.com/v13.0/#{comment_id}/replies?access_token=#{@token}&message=#{message}"
+      comment = RestClient.post(comment_url, :payload => {}, :headers => {})
+      id = JSON.parse(comment)["id"]
+      split_url = reply_to_url.split("/")
+      split_url[5] = "#comment-#{id}"
+      split_url.join("/")
     end
 
     def reposts
