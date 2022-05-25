@@ -4,6 +4,7 @@ require 'psych'
 require 'jekyll-posse/twitter'
 require 'jekyll-posse/mastodon'
 require 'jekyll-posse/tumblr'
+require 'jekyll-posse/instagram'
 require 'sanitize'
 require 'kramdown'
 require 'kramdown-parser-gfm'
@@ -93,6 +94,9 @@ module JekyllPosse
           blog = service["blog"]
           tumblr = JekyllPosse::TumblrPosse.new(post.data, rendered, blog, download)
           url = tumblr.send(post.type.to_sym)
+        elsif service["type"] == "instagram"
+          instagram = JekyllPosse::InstagramPosse.new(post.data, sanitized, download)
+          url = instagram.send(post.type.to_sym)
         end
         url
       rescue => error
