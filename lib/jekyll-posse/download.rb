@@ -2,6 +2,7 @@ require 'jekyll'
 require 'jekyll-posse/twitter'
 require 'jekyll-posse/mastodon'
 require 'jekyll-posse/tumblr'
+require 'jekyll-posse/microblog'
 
 module JekyllPosse
   class Download
@@ -15,6 +16,9 @@ module JekyllPosse
       elsif options["instagram"]
         instagram = JekyllPosse::InstagramPosse.new()
         instagram.download_comment(args[0])
+      elsif options["microblog"]
+        microblog = JekyllPosse::MicroBlogPosse.new()
+        microblog.download()
       end
     end
   end
