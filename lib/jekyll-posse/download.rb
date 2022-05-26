@@ -12,6 +12,9 @@ module JekyllPosse
       elsif options["tumblr"]
         tumblr = JekyllPosse::TumblrPosse.new()
         tumblr.download_post(args[0])
+      elsif options["instagram"]
+        instagram = JekyllPosse::InstagramPosse.new()
+        instagram.download_comment(args[0])
       end
     end
   end

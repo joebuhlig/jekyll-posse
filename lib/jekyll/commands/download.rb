@@ -8,6 +8,7 @@ module Jekyll
 
           c.option 'twitter', '--twitter', 'Download from Twitter'
           c.option 'tumblr', '--tumblr', 'Download from Tumblr'
+          c.option 'instagram', '--instagram', 'Download from Instagram'
 
           c.action do |args, options|
             JekyllPosse.download(args, options)

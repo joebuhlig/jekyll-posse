@@ -4,7 +4,7 @@ require 'jekyll-offload'
 module JekyllPosse
   class InstagramPosse
 
-    def initialize(data, content, download = false)
+    def initialize(data = nil, content = nil, download = false)
       @data = data
       @content = content
       @download = download
@@ -47,7 +47,6 @@ module JekyllPosse
       format_toot(toot)
     end
 
-    private
     def format_post(id)
       media_url = "https://graph.facebook.com/#{id}?access_token=#{@token}&fields=permalink"
       media = RestClient.get(media_url)
@@ -76,6 +75,17 @@ module JekyllPosse
         id = JSON.parse(carousel)["id"]
         id
       end
+    end
+
+    def download_comment(url)
+      comment_id = url.split("-").last
+      comment_url = "https://graph.facebook.com/v13.0/#{comment_id}?access_token=#{@token}&fields=from,hidden,id,media,parent_id,text,timestamp,user,username"
+      comment = RestClient.get(comment_url)
+      FileUtils.mkdir_p("_data/instagram/comments/") unless File.directory?("_data/instagram/comments/")
+      File.open("_data/instagram/comments/#{comment_id}.json","w") do |f|
+        f.write(comment)
+      end
+      puts "Comment downloaded to: _data/instagram/comments/#{comment_id}.json"
     end
 
   end
