@@ -6,6 +6,7 @@ require 'jekyll-posse/mastodon'
 require 'jekyll-posse/tumblr'
 require 'jekyll-posse/instagram'
 require 'jekyll-posse/flickr'
+require 'jekyll-posse/reddit'
 require 'sanitize'
 require 'kramdown'
 require 'kramdown-parser-gfm'
@@ -112,6 +113,9 @@ module JekyllPosse
       elsif service["type"] == "flickr"
         flickr = JekyllPosse::FlickrPosse.new(post.data, sanitized, silo, download)
         url = flickr.send(post.type.to_sym)
+      elsif service["type"] == "reddit"
+        reddit = JekyllPosse::RedditPosse.new(post.data, content, sanitized, silo, download)
+        url = reddit.send(post.type.to_sym)
       end
       url
     end
