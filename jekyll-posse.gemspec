@@ -26,5 +26,6 @@ Gem::Specification.new do |s|
   s.add_dependency "oauth"
   s.add_dependency "aws-sdk-s3"
   s.add_dependency "mime-types"
+  s.add_dependency "nokogiri"
 end
 

@@ -30,9 +30,9 @@ module JekyllPosse
             raw =~ Jekyll::Document::YAML_FRONT_MATTER_REGEXP
             content = $POSTMATCH
             data = Psych.load(Regexp.last_match(1))
-            data["syndication"] = [] unless data.include?("syndication")
             if data["mp-syndicate-to"] and data["date"] < Time.now
               download = false
+              data["syndication"] = [] unless data.include?("syndication")
               begin
                 if data["mp-syndicate-to"].kind_of?(Array)
                   to_delete = []
@@ -79,6 +79,13 @@ module JekyllPosse
               end
             end
 
+            if data["repost-of"] and !data["syndication"] and !data["mp-syndicate-to"]
+              uri = URI.parse(data["repost-of"])
+              unless File.file?("_data/websites/#{uri.hostname}#{uri.path}data.json")
+                website = JekyllPosse::WebsitePosse.new()
+                website.download(data["repost-of"])
+              end
+            end
           end
         end
       end

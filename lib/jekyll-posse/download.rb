@@ -3,6 +3,7 @@ require 'jekyll-posse/twitter'
 require 'jekyll-posse/mastodon'
 require 'jekyll-posse/tumblr'
 require 'jekyll-posse/microblog'
+require 'jekyll-posse/website'
 
 module JekyllPosse
   class Download
@@ -19,6 +20,9 @@ module JekyllPosse
       elsif options["microblog"]
         microblog = JekyllPosse::MicroBlogPosse.new()
         microblog.download()
+      elsif options["website"]
+        website = JekyllPosse::WebsitePosse.new()
+        website.download(args[0])
       end
     end
   end
