@@ -3,6 +3,7 @@ require 'jekyll-posse/twitter'
 require 'jekyll-posse/mastodon'
 require 'jekyll-posse/tumblr'
 require 'jekyll-posse/microblog'
+require 'jekyll-posse/reddit'
 require 'jekyll-posse/website'
 
 module JekyllPosse
