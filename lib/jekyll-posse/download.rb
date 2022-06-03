@@ -20,6 +20,9 @@ module JekyllPosse
       elsif options["microblog"]
         microblog = JekyllPosse::MicroBlogPosse.new()
         microblog.download()
+      elsif options["reddit"]
+        reddit = JekyllPosse::RedditPosse.new()
+        reddit.download(args[0])
       elsif options["website"]
         website = JekyllPosse::WebsitePosse.new()
         website.download(args[0])
