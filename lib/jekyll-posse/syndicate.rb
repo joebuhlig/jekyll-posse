@@ -31,15 +31,17 @@ module JekyllPosse
             content = $POSTMATCH
             data = Psych.load(Regexp.last_match(1))
             if data["mp-syndicate-to"] and data["date"] < Time.now
+
               download = false
+              if @posse_conf.include? "download" and @posse_conf["download"]
+                 download = true
+              end
+
               data["syndication"] = [] unless data.include?("syndication")
               begin
                 if data["mp-syndicate-to"].kind_of?(Array)
                   to_delete = []
                   data["mp-syndicate-to"].each do |silo|
-                    if @posse_conf.include? "download" and @posse_conf["download"].include? name and @posse_conf["download"][name].include? silo
-                       download = true
-                    end
                     begin
                       syndication_url = mp_syndicate(post, silo, download)
                     rescue => error
@@ -58,9 +60,6 @@ module JekyllPosse
                   data["mp-syndicate-to"].delete_if { |item| to_delete.include? item }
                 else
                   silo = data["mp-syndicate-to"]
-                  if @posse_conf["download"] and @posse_conf["download"][name] and @posse_conf["download"][name][silo]
-                    download = true
-                  end
                   syndication_url = mp_syndicate(post, silo, download)
                   if syndication_url
                     data["syndication"][0] = syndication_url
@@ -92,7 +91,7 @@ module JekyllPosse
     end
 
     def self.mp_syndicate(post, silo, download)
-      service = @posse_conf["mp-syndicate-to"][silo]
+      service = get_service(silo)
       puts "Syndicating to #{silo}"
 
       content = post.content
@@ -103,28 +102,46 @@ module JekyllPosse
       rendered = Kramdown::Document.new(content).to_html
       sanitized = Sanitize.fragment(rendered)
 
-      if service["type"] == "twitter"
+      if service == "twitter"
         twitter = JekyllPosse::TwitterPosse.new(post.data, sanitized, download)
         url = twitter.send(post.type.to_sym)
-      elsif service["type"] == "mastodon"
-        url = service["url"]
+      elsif service == "mastodon"
+        url = @posse_conf["mp-syndicate-to"][silo]["url"]
         mastodon = JekyllPosse::MastodonPosse.new(post.data, sanitized, url, download)
         url = mastodon.send(post.type.to_sym)
-      elsif service["type"] == "tumblr"
-        blog = service["blog"]
+      elsif service == "tumblr"
+        blog = @posse_conf["mp-syndicate-to"][silo]["blog"]
         tumblr = JekyllPosse::TumblrPosse.new(post.data, rendered, blog, download)
         url = tumblr.send(post.type.to_sym)
-      elsif service["type"] == "instagram"
+      elsif service == "instagram"
         instagram = JekyllPosse::InstagramPosse.new(post.data, sanitized, download)
         url = instagram.send(post.type.to_sym)
-      elsif service["type"] == "flickr"
+      elsif service == "flickr"
         flickr = JekyllPosse::FlickrPosse.new(post.data, sanitized, silo, download)
         url = flickr.send(post.type.to_sym)
-      elsif service["type"] == "reddit"
+      elsif service == "reddit"
         reddit = JekyllPosse::RedditPosse.new(post.data, content, sanitized, silo, download)
         url = reddit.send(post.type.to_sym)
       end
       url
+    end
+
+    def self.get_service(silo)
+      if silo.include? "twitter.com"
+        "twitter"
+      elsif silo.include? "tumblr.com"
+        "tumblr"
+      elsif silo.include? "instagram.com"
+        "instagram"
+      elsif silo.include? "flickr.com"
+        "flickr"
+      elsif silo.include? "reddit.com"
+        "reddit"
+      elsif silo.include? "medium.com"
+        "medium"
+      elsif @posse_conf["mp-syndicate-to"].has_key? silo
+        @posse_conf["mp-syndicate-to"][silo]["type"]
+      end
     end
 
     def self.insert_shortlink(post, domain)

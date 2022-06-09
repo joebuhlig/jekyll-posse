@@ -12,7 +12,7 @@ module JekyllPosse
       posse_conf = jekyll_conf["jekyll_posse"]
       site = Jekyll::Site.new(jekyll_conf)
       site.read
-      username = posse_conf["download"]["microblog"]
+      username = posse_conf["microblog"]
       payload = RestClient.get("https://micro.blog/posts/#{username}", :headers => {"Authorization" => @token})
       microblog_data = {}
       JSON.parse(payload)["items"].each do |post|
