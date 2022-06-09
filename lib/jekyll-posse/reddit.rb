@@ -28,6 +28,16 @@ module JekyllPosse
     end
 
     def replies
+      fullname = get_fullname(@data["in-reply-to"])
+      payload = {
+        "api_type" => "json",
+        "kind" => "self",
+        "thing_id" => fullname,
+        "text" => @content
+      }
+      post = RestClient.post "#{@domain}/api/comment", payload, {:Authorization => "Bearer #{@token}"}
+      download(fullname)
+      format_post(post)
     end
 
     def reposts
@@ -52,7 +62,12 @@ module JekyllPosse
     end
 
     def format_post(post)
-      return JSON.parse(post)["json"]["data"]["url"]
+      data = JSON.parse(post)["json"]["data"]
+      if data.has_key? "url"
+        return data["url"]
+      elsif data.has_key? "things"
+        return "https://reddit.com#{data['things'][0]['data']['permalink']}"
+      end
     end
 
     def get_subreddit(silo)
