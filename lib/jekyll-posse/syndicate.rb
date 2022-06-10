@@ -31,7 +31,7 @@ module JekyllPosse
             raw =~ Jekyll::Document::YAML_FRONT_MATTER_REGEXP
             content = $POSTMATCH
             data = Psych.load(Regexp.last_match(1))
-            if data["mp-syndicate-to"] and Time.parse(data["date"]) < Time.now
+            if data["mp-syndicate-to"] and Time.parse(data["date"].to_s) < Time.now
               download = false
               if @posse_conf.include? "download" and @posse_conf["download"]
                  download = true
