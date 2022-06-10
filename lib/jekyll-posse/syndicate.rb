@@ -7,6 +7,7 @@ require 'jekyll-posse/tumblr'
 require 'jekyll-posse/instagram'
 require 'jekyll-posse/flickr'
 require 'jekyll-posse/reddit'
+require 'jekyll-posse/medium'
 require 'sanitize'
 require 'kramdown'
 require 'kramdown-parser-gfm'
@@ -100,6 +101,7 @@ module JekyllPosse
       end
       rendered = Kramdown::Document.new(content).to_html
       sanitized = Sanitize.fragment(rendered)
+      permalink = "#{@jekyll_conf['url']}#{post.url}"
 
       if service == "twitter"
         twitter = JekyllPosse::TwitterPosse.new(post.data, sanitized, download)
@@ -119,8 +121,10 @@ module JekyllPosse
         flickr = JekyllPosse::FlickrPosse.new(post.data, sanitized, silo, download)
         url = flickr.send(post.type.to_sym)
       elsif service == "reddit"
-        permalink = "#{@jekyll_conf['url']}#{post.url}"
         reddit = JekyllPosse::RedditPosse.new(post.data, content, sanitized, silo, permalink, download)
+        url = reddit.send(post.type.to_sym)
+      elsif service == "medium"
+        reddit = JekyllPosse::MediumPosse.new(post.data, rendered, permalink)
         url = reddit.send(post.type.to_sym)
       end
       url
