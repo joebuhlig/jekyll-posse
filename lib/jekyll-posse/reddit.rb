@@ -5,14 +5,27 @@ require 'mime-types'
 module JekyllPosse
   class RedditPosse
 
-    def initialize(data = nil, content = nil, sanitized = nil, silo = nil, download = false)
+    def initialize(data = nil, content = nil, sanitized = nil, silo = nil, permalink = false, download = false)
       @domain = "https://oauth.reddit.com/"
       @data = data
       @content = content
       @sanitized = sanitized
       @subreddit = get_subreddit(silo)
+      @permalink = permalink
       @download = download
       @token = ENV["REDDIT_BEARER_TOKEN"]
+    end
+
+    def posts
+      payload = {
+        "api_type" => "json",
+        "kind" => "link",
+        "sr" => @subreddit,
+        "url" => @permalink,
+        "title" => @data["title"]
+      }
+      post = RestClient.post "#{@domain}api/submit", payload, {:Authorization => "Bearer #{@token}"}
+      format_post(post)
     end
 
     def notes
@@ -23,7 +36,7 @@ module JekyllPosse
         "text" => @content,
         "title" => create_title
       }
-      post = RestClient.post "#{@domain}/api/submit", payload, {:Authorization => "Bearer #{@token}"}
+      post = RestClient.post "#{@domain}api/submit", payload, {:Authorization => "Bearer #{@token}"}
       format_post(post)
     end
 
@@ -35,7 +48,7 @@ module JekyllPosse
         "thing_id" => fullname,
         "text" => @content
       }
-      post = RestClient.post "#{@domain}/api/comment", payload, {:Authorization => "Bearer #{@token}"}
+      post = RestClient.post "#{@domain}api/comment", payload, {:Authorization => "Bearer #{@token}"}
       download(fullname)
       format_post(post)
     end
@@ -50,15 +63,55 @@ module JekyllPosse
         "id" => fullname,
         "dir" => 1
       }
-      like = RestClient.post "#{@domain}/api/vote", payload, {:Authorization => "Bearer #{@token}"}
+      like = RestClient.post "#{@domain}api/vote", payload, {:Authorization => "Bearer #{@token}"}
       download(fullname)
       @data["like-of"]
     end
 
     def photos
+      content = @content.dup
+      @data["photo"].each do |photo|
+        media_id = post_media(photo)
+        content << "\n\n![img](#{media_id})"
+      end
+      richtext_data = {
+        "output_mode" => "rtjson",
+        "markdown_text" => content
+      }
+      richtext_js = RestClient.post "#{@domain}api/convert_rte_body_format", richtext_data, {:Authorization => "Bearer #{@token}"}
+      json = JSON.parse(richtext_js)["output"]
+      payload = {
+        "api_type" => "json",
+        "kind" => "self",
+        "sr" => @subreddit,
+        "richtext_json" => json.to_json,
+        "title" => create_title
+      }
+      post = RestClient.post "#{@domain}api/submit", payload, {:Authorization => "Bearer #{@token}"}
+      format_post(post)
     end
 
     def videos
+      content = @content.dup
+      @data["video"].each do |video|
+        media_id = post_media(video)
+        content << "\n\n![video](#{media_id})"
+      end
+      richtext_data = {
+        "output_mode" => "rtjson",
+        "markdown_text" => content
+      }
+      richtext_js = RestClient.post "#{@domain}api/convert_rte_body_format", richtext_data, {:Authorization => "Bearer #{@token}"}
+      json = JSON.parse(richtext_js)["output"]
+      payload = {
+        "api_type" => "json",
+        "kind" => "self",
+        "sr" => @subreddit,
+        "richtext_json" => json.to_json,
+        "title" => create_title
+      }
+      post = RestClient.post "#{@domain}api/submit", payload, {:Authorization => "Bearer #{@token}"}
+      format_post(post)
     end
 
     def format_post(post)
@@ -97,6 +150,26 @@ module JekyllPosse
       @sanitized.split[0...11].join(' ')
     end
 
+    def post_media(path)
+      puts "Uploading to Reddit: #{path}"
+      file_type = MIME::Types.type_for(path.split('.').last).first.to_s
+      payload = {
+        "filepath" => path,
+        "mimetype" => file_type
+      }
+      media = RestClient.post "#{@domain}api/media/asset.json", payload, {:Authorization => "Bearer #{@token}"}
+      data = JSON.parse(media)
+      upload_lease = data["args"]
+      upload_url = "https:#{upload_lease['action']}"
+      upload_data = {}
+      for item in upload_lease["fields"]
+        upload_data[item["name"]] = item["value"]
+      end
+      upload_data["file"] = File.new(path)
+      upload = RestClient.post upload_url, upload_data
+      data["asset"]["asset_id"]
+    end
+
     def download(item)
       s3 = Aws::S3::Client.new(
         access_key_id: ENV["S3_ACCESS_KEY"],
@@ -114,7 +187,7 @@ module JekyllPosse
         "api_type" => "json",
         "id" => fullname
       }
-      request = RestClient.get "#{@domain}/api/info?id=#{fullname}", {:Authorization => "Bearer #{@token}"}
+      request = RestClient.get "#{@domain}api/info?id=#{fullname}", {:Authorization => "Bearer #{@token}"}
       data = JSON.parse(request)["data"]
 
       author_fullname = data["children"][0]["data"]["author_fullname"]

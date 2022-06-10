@@ -30,8 +30,7 @@ module JekyllPosse
             raw =~ Jekyll::Document::YAML_FRONT_MATTER_REGEXP
             content = $POSTMATCH
             data = Psych.load(Regexp.last_match(1))
-            if data["mp-syndicate-to"] and data["date"] < Time.now
-
+            if data["mp-syndicate-to"] and Time.parse(data["date"]) < Time.now
               download = false
               if @posse_conf.include? "download" and @posse_conf["download"]
                  download = true
@@ -120,7 +119,8 @@ module JekyllPosse
         flickr = JekyllPosse::FlickrPosse.new(post.data, sanitized, silo, download)
         url = flickr.send(post.type.to_sym)
       elsif service == "reddit"
-        reddit = JekyllPosse::RedditPosse.new(post.data, content, sanitized, silo, download)
+        permalink = "#{@jekyll_conf['url']}#{post.url}"
+        reddit = JekyllPosse::RedditPosse.new(post.data, content, sanitized, silo, permalink, download)
         url = reddit.send(post.type.to_sym)
       end
       url
