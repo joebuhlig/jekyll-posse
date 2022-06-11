@@ -36,7 +36,7 @@ module JekyllPosse
       end
       url = format_tweet(tweet)
       if @download
-        download_tweet(url)
+        download_tweet(@data["in-reply-to"])
       end
       return url
     end
