@@ -31,15 +31,15 @@ module JekyllPosse
             raw =~ Jekyll::Document::YAML_FRONT_MATTER_REGEXP
             content = $POSTMATCH
             data = Psych.load(Regexp.last_match(1))
-            if data["mp-syndicate-to"] and Time.parse(data["date"].to_s) < Time.now
+            if should_syndicate(data)
               download = false
               if @posse_conf.include? "download" and @posse_conf["download"]
                  download = true
               end
 
-              data["syndication"] = [] unless data.include?("syndication")
               begin
                 if data["mp-syndicate-to"].kind_of?(Array)
+                  data["syndication"] = [] unless data.include?("syndication")
                   to_delete = []
                   data["mp-syndicate-to"].each do |silo|
                     begin
@@ -58,12 +58,25 @@ module JekyllPosse
                     end
                   end
                   data["mp-syndicate-to"].delete_if { |item| to_delete.include? item }
-                else
+                elsif data["mp-syndicate-to"].kind_of?(String)
+                  data["syndication"] = [] unless data.include?("syndication")
                   silo = data["mp-syndicate-to"]
                   syndication_url = mp_syndicate(post, silo, download)
                   if syndication_url
                     data["syndication"][0] = syndication_url
                     data["mp-syndicate-to"] = ""
+                    puts "Syndicated: #{syndication_url}"
+                  else
+                    puts "FAILED TO SYNDICATE: #{silo}"
+                  end
+                elsif (data["like-of"] || data["repost-of"] || data["in-reply-to"] || data["bookmark-of"]) and !data["syndication"]
+
+                  data["syndication"] = [] unless data.include?("syndication")
+                  url = data["like-of"] || data["repost-of"] || data["in-reply-to"] || data["bookmark-of"]
+                  syndication_url = mp_syndicate(post, url, download)
+                  if syndication_url
+                    data["syndication"][0] = syndication_url
+                    data.delete("excerpt")
                     puts "Syndicated: #{syndication_url}"
                   else
                     puts "FAILED TO SYNDICATE: #{silo}"
@@ -88,6 +101,14 @@ module JekyllPosse
           end
         end
       end
+    end
+
+    def self.should_syndicate(data)
+      return true if data["mp-syndicate-to"] and Time.parse(data["date"].to_s) < Time.now
+      url = data["like-of"] || data["repost-of"] || data["in-reply-to"] || data["bookmark-of"] || nil
+      service = get_service(url) if url
+      return true if url and service and !data["syndication"] and Time.parse(data["date"].to_s) < Time.now
+      false
     end
 
     def self.mp_syndicate(post, silo, download)
