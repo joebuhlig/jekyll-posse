@@ -91,11 +91,12 @@ module JekyllPosse
               end
             end
 
-            if data["repost-of"] and !data["syndication"] and !data["mp-syndicate-to"]
-              uri = URI.parse(data["repost-of"])
+            if (data["repost-of"] || data["bookmark-of"]) and !data["syndication"] and !data["mp-syndicate-to"]
+              url = data["repost-of"] || data["bookmark-of"]
+              uri = URI.parse(url)
               unless File.file?("_data/websites/#{uri.hostname}#{uri.path}data.json")
                 website = JekyllPosse::WebsitePosse.new()
-                website.download(data["repost-of"])
+                website.download(url)
               end
             end
           end
