@@ -8,6 +8,7 @@ require 'jekyll-posse/instagram'
 require 'jekyll-posse/flickr'
 require 'jekyll-posse/reddit'
 require 'jekyll-posse/medium'
+require 'jekyll-posse/truth'
 require 'sanitize'
 require 'kramdown'
 require 'kramdown-parser-gfm'
@@ -148,6 +149,9 @@ module JekyllPosse
       elsif service == "medium"
         reddit = JekyllPosse::MediumPosse.new(post.data, rendered, permalink)
         url = reddit.send(post.type.to_sym)
+      elsif service == "truth"
+        truth = JekyllPosse::TruthPosse.new(post.data, sanitized, download)
+        url = truth.send(post.type.to_sym)
       end
       url
     end
@@ -165,6 +169,8 @@ module JekyllPosse
         "reddit"
       elsif silo.include? "medium.com"
         "medium"
+      elsif silo.include? "truthsocial.com"
+        "truth"
       elsif @posse_conf["mp-syndicate-to"].has_key? silo
         @posse_conf["mp-syndicate-to"][silo]["type"]
       end
